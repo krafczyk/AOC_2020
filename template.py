@@ -4,7 +4,7 @@ import sys
 
 # Define Argument Parser
 parser = argparse.ArgumentParser('Solves Advent of Code Day X')
-parser.add_argument('input', help="Path to the input file", type=str, required=True)
+parser.add_argument('--input', help="Path to the input file", type=str, required=True)
 
 # Parse Arguments
 args = parser.parse_args()
