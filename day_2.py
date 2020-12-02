@@ -24,7 +24,8 @@ with open(input_filepath, 'r') as f:
 line_re = re.compile('(\d+)-(\d+) (.): (.*)$')
 
 line_decomp = []
-num_valid = 0
+num_valid_1 = 0
+num_valid_2 = 0
 for line in lines:
     match = line_re.search(line)
     if not match:
@@ -37,6 +38,14 @@ for line in lines:
     num_let = len(list(filter(lambda l: l == let, password)))
 
     if num_let >= low and num_let <= high:
-        num_valid += 1
+        num_valid_1 += 1
 
-print(f"Task 1: There are {num_valid} valid passwords")
+    low_let = password[low-1]
+    high_let = password[high-1]
+
+    if (low_let == let and high_let != let) or\
+       (low_let != let and high_let == let):
+        num_valid_2 += 1
+
+print(f"Task 1: There are {num_valid_1} valid passwords")
+print(f"Task 2: There are {num_valid_2} valid passwords")
