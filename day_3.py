@@ -4,7 +4,7 @@ import sys
 import numpy as np
 
 # Define Argument Parser
-parser = argparse.ArgumentParser('Solves Advent of Code Day X')
+parser = argparse.ArgumentParser('Solves Advent of Code Day 3')
 parser.add_argument('--input', help="Path to the input file", type=str, required=True)
 
 # Parse Arguments
