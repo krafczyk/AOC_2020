@@ -44,6 +44,14 @@ def num_trees(mx, my):
 
     return n_trees
 
-task_1_trees = num_trees(3,1)
+trees_1_1 = num_trees(1,1)
+trees_3_1 = num_trees(3,1)
+trees_5_1 = num_trees(5,1)
+trees_7_1 = num_trees(7,1)
+trees_1_2 = num_trees(1,2)
 
-print(f"Day 3 task 1: {task_1_trees} trees.")
+print(f"Day 3 task 1: {trees_3_1} trees.")
+
+task_2 = trees_1_1*trees_3_1*trees_5_1*trees_7_1*trees_1_2
+
+print(f"Day 3 task 2: {task_2}")
