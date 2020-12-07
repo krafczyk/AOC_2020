@@ -29,7 +29,7 @@ rule_dict = {}
 for line in lines:
     match = init_re.search(line.strip())
     bag_name = match.group(1)
-    children = list(filter(lambda c: c[1] != 'no other',child_re.findall(line)))
+    children = list(map(lambda c: (int(c[0]),c[1]), filter(lambda c: c[1] != 'no other',child_re.findall(line))))
     rule_dict[bag_name] = children
 
 #for bag in rule_dict:
@@ -50,6 +50,12 @@ def contains_bag(bag, target):
             return True
     return False
 
+def num_inside(bag):
+    num = 0
+    for child in rule_dict[bag]:
+        num += int(child[0])*(1+num_inside(child[1]))
+    return num
+
 num_1 = 0
 target_bag = 'shiny gold'
 for bag in unique_bag_names:
@@ -59,3 +65,6 @@ for bag in unique_bag_names:
 
 print(f"Day 7 task 1: {num_1} bags contain {target_bag}")
 
+
+num_2 = num_inside(target_bag)
+print(f"Day 7 task 2: {target_bag} must contain {num_2} other bags")
