@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+import copy
 
 # Define Argument Parser
 parser = argparse.ArgumentParser('Solves Advent of Code Day 8')
@@ -26,7 +27,7 @@ class Computer(object):
         program = []
         for line in lines:
             parts = line.split()
-            program.append((parts[0], int(parts[1])))
+            program.append([parts[0], int(parts[1])])
         return program
 
     def __init__(self, program):
@@ -64,13 +65,32 @@ class Computer(object):
     def run_program(self):
         instruction_count = {}
         while True:
-            if instruction_count.get(self.cur_inst, 0) == 1:
+            if self.cur_inst == len(self.program):
+                return
+            elif self.cur_inst > len(self.program):
+                raise RuntimeError("Program Overflow!")
+            elif instruction_count.get(self.cur_inst, 0) == 1:
                 return
             else:
                 instruction_count[self.cur_inst] = instruction_count.get(self.cur_inst, 0)+1
                 self.run_cur_instruction()
 
-computer = Computer(Computer.read_program_by_lines(lines))
+program = Computer.read_program_by_lines(lines)
 
+computer = Computer(program)
 computer.run_program()
 print(f"Day 8 task 1: {computer.accumulator}")
+
+for i in range(len(program)):
+    program_copy = copy.deepcopy(program)
+    if program_copy[i][0] == 'nop':
+        program_copy[i][0] = 'jmp'
+    elif program_copy[i][0] == 'jmp':
+        program_copy[i][0] = 'nop'
+    else:
+        continue
+    computer = Computer(program_copy)
+    computer.run_program()
+    if computer.cur_inst == len(program_copy):
+        print(f"Day 8 task 2: {computer.accumulator}")
+        break
