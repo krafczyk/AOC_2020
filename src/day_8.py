@@ -61,14 +61,16 @@ class Computer(object):
         inst = self.program[self.cur_inst]
         self.run_instruction(inst)
 
+    def run_program(self):
+        instruction_count = {}
+        while True:
+            if instruction_count.get(self.cur_inst, 0) == 1:
+                return
+            else:
+                instruction_count[self.cur_inst] = instruction_count.get(self.cur_inst, 0)+1
+                self.run_cur_instruction()
+
 computer = Computer(Computer.read_program_by_lines(lines))
 
-instruction_count = {}
-
-while True:
-    if instruction_count.get(computer.cur_inst, 0) == 1:
-        print(f"Day 8 task 1: {computer.accumulator}")
-        break
-    else:
-        instruction_count[computer.cur_inst] = instruction_count.get(computer.cur_inst, 0)+1
-        computer.run_cur_instruction()
+computer.run_program()
+print(f"Day 8 task 1: {computer.accumulator}")
