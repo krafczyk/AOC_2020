@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+import numpy as np
 
 # Define Argument Parser
 parser = argparse.ArgumentParser('Solves Advent of Code Day 9')
@@ -27,6 +28,7 @@ preamble_len = args.preamble_length
 
 print(f"Using preamble length of {preamble_len}")
 
+invalid_num = 0
 for N in range(preamble_len, len(nums)):
     target_num = nums[N]
     is_valid = False
@@ -41,5 +43,23 @@ for N in range(preamble_len, len(nums)):
             break
 
     if not is_valid:
-        print(f"Day 9 task 1: {target_num} is the first number that isn't the sum of two of the previous {preamble_len} numbers")
+        invalid_num = target_num
+        break
+
+print(f"Day 9 task 1: {invalid_num} is the first invalid number.")
+
+nums = np.array(nums)
+print(f"nums shape: {nums.shape}")
+for L in range(2, len(nums)):
+    print(f"Checking sums of length: {L}")
+    sums = np.zeros((len(nums)-(L-1)))
+    for i in range(0, L):
+        sums += nums[i:i+(len(nums)-L+1)]
+    Is = np.where(sums == invalid_num)[0]
+    if Is.shape[0] > 0:
+        i = Is[0]
+        Range = nums[i:i+L]
+        largest = Range.max()
+        smallest = Range.min()
+        print(f"Day 9 task 2: encryption weakness is: {largest+smallest}")
         break
