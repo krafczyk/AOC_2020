@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 import numpy as np
+import copy
 
 # Define Argument Parser
 parser = argparse.ArgumentParser('Solves Advent of Code Day 15')
@@ -23,14 +24,12 @@ with open(input_filepath, 'r') as f:
 
 nums = list(map(lambda s: int(s), lines[0].split(',')))
 
-print(nums)
-
 times_spoke = {}
 
 for i in range(len(nums)):
     times_spoke[nums[i]] = [i]
 
-num_said = 3
+num_said = len(nums)
 last_said = nums[-1]
 
 def say_number(last_said, num_said):
@@ -39,7 +38,7 @@ def say_number(last_said, num_said):
         # If last number was said only once, say 0
         said = 0
     else:
-        said = array[-1]-array[-2]
+        said = abs(array[0]-array[1])
     array = times_spoke.get(said, [])
     array.append(num_said)
     if len(array) > 2:
