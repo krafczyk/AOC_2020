@@ -23,14 +23,38 @@ with open(input_filepath, 'r') as f:
 
 nums = list(map(lambda s: int(s), lines[0].split(',')))
 
-nums_array = np.array(nums)
+print(nums)
 
-while len(nums) < 2020:
-    last_where = np.where(nums_array == nums_array[-1])[0]
-    if len(last_where) == 1:
-        nums.append(0)
+times_spoke = {}
+
+for i in range(len(nums)):
+    times_spoke[nums[i]] = [i]
+
+num_said = 3
+last_said = nums[-1]
+
+def say_number(last_said, num_said):
+    array = times_spoke[last_said]
+    if len(array) == 1:
+        # If last number was said only once, say 0
+        said = 0
     else:
-        nums.append(last_where[-1]-last_where[-2])
-    nums_array = np.array(nums)
+        said = array[-1]-array[-2]
+    array = times_spoke.get(said, [])
+    array.append(num_said)
+    if len(array) > 2:
+        del array[0]
+    times_spoke[said] = array
+    return said
 
-print(f"Day 15 task 1: {nums_array[-1]}")
+while num_said < 2020:
+    last_said = say_number(last_said, num_said)
+    num_said += 1
+
+print(f"Day 15 task 1: {last_said}")
+
+while num_said < 30000000:
+    last_said = say_number(last_said, num_said)
+    num_said += 1
+
+print(f"Day 15 task 2: {last_said}")
