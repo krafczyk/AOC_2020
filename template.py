@@ -16,3 +16,6 @@ input_filepath = args.input
 if not os.path.exists(input_filepath):
     print(f"ERROR file {input_filepath} doesn't exist!")
     sys.exit(1)
+
+with open(input_filepath, 'r') as f:
+    lines = f.readlines()
