@@ -99,11 +99,8 @@ while num_steps < 6:
         for y in range(range_y[0]-1, range_y[1]+2):
             for z in range(range_z[0]-1, range_z[1]+2):
                 pos = (x,y,z)
-                #print(pos)
                 neighbors = set(map(tuple, list(D+np.array(pos))))
-                #print(neighbors)
                 num_neighbors = len(neighbors.intersection(conway_set))
-                #print(num_neighbors)
                 if pos in conway_set:
                     if num_neighbors >= 2 and num_neighbors <= 3:
                         new_conway_set.add(pos)
@@ -111,8 +108,84 @@ while num_steps < 6:
                     if num_neighbors == 3:
                         new_conway_set.add(pos)
     num_steps += 1
-    #print(f"After step {num_steps}:")
-    #display_set(new_conway_set)
     conway_set = new_conway_set
 
 print(f"Day 17 task 1: {len(conway_set)}")
+
+d = np.arange(-1,2)
+mg = np.meshgrid(d, d, d, d)
+D = np.stack(mg, axis=4).reshape((3**4,4))
+D = D[np.apply_along_axis(np.sum, 1, np.apply_along_axis(np.abs, 1, np.abs(D)))!= 0]
+
+def get_set_extent(conway_set):
+    conway_list = list(conway_set)
+    first_val = list(conway_set)[0]
+    range_x = [first_val[0], first_val[0]]
+    range_y = [first_val[1], first_val[1]]
+    range_z = [first_val[2], first_val[2]]
+    range_w = [first_val[3], first_val[3]]
+
+    for pos in conway_list:
+        range_x[0] = min(range_x[0], pos[0])
+        range_x[1] = max(range_x[1], pos[0])
+        range_y[0] = min(range_y[0], pos[1])
+        range_y[1] = max(range_y[1], pos[1])
+        range_z[0] = min(range_z[0], pos[2])
+        range_z[1] = max(range_z[1], pos[2])
+        range_w[0] = min(range_z[0], pos[3])
+        range_w[1] = max(range_z[1], pos[3])
+    return (range_x, range_y, range_z, range_w)
+
+def display_set(conway_set, ranges=None):
+    if ranges is None:
+        ranges = get_set_extent(conway_set)
+
+    range_x = ranges[0]
+    range_y = ranges[1]
+    range_z = ranges[2]
+    range_w = ranges[3]
+
+    for w in range(range_w[0],range_w[1]+1):
+        for z in range(range_z[0],range_z[1]+1):
+            print(f"z={z}, w={w}")
+            for y in range(range_y[0], range_y[1]+1):
+                line = ""
+                for x in range(range_x[0], range_x[1]+1):
+                    if (x,y,z) in conway_set:
+                        line += '#'
+                    else:
+                        line += '.'
+                print(line)
+            print()
+
+conway_set = set()
+
+# Initialize set
+for x in range(nx):
+    for y in range(ny):
+        if lines[y][x] == '#':
+            conway_set.add((x,y,0,0))
+
+num_steps = 0
+while num_steps < 6:
+    # Detect min/max values for each position
+    (range_x, range_y, range_z, range_w) = get_set_extent(conway_set)
+
+    new_conway_set = set()
+    for x in range(range_x[0]-1, range_x[1]+2):
+        for y in range(range_y[0]-1, range_y[1]+2):
+            for z in range(range_z[0]-1, range_z[1]+2):
+                for w in range(range_w[0]-1, range_w[1]+2):
+                    pos = (x,y,z,w)
+                    neighbors = set(map(tuple, list(D+np.array(pos))))
+                    num_neighbors = len(neighbors.intersection(conway_set))
+                    if pos in conway_set:
+                        if num_neighbors >= 2 and num_neighbors <= 3:
+                            new_conway_set.add(pos)
+                    else:
+                        if num_neighbors == 3:
+                            new_conway_set.add(pos)
+    num_steps += 1
+    conway_set = new_conway_set
+
+print(f"Day 17 task 2: {len(conway_set)}")
