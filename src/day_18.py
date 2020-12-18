@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 import string
+import re
 
 # Define Argument Parser
 parser = argparse.ArgumentParser('Solves Advent of Code Day 18')
@@ -74,7 +75,7 @@ class NumberNode(Node):
 
 # Assumption: All numbers are single digits. This means we don't have to write a tokenizer. Input has already been tokenized.
 
-def parse_line(line):
+def parse_line_1(line):
     the_line = line.strip()
     i = 0
     last_node = None
@@ -132,7 +133,7 @@ def parse_line(line):
                     depth -= 1
                 j += 1
             # Parse subordinate section.
-            node = parse_line(the_line[i+1:j])
+            node = parse_line_1(the_line[i+1:j])
 
             if last_node is None:
                 last_node = node
@@ -153,7 +154,55 @@ def parse_line(line):
 
 total = 0
 for line in lines:
-    result = parse_line(line)
+    result = parse_line_1(line)
     total += result()
 
 print(f"Day 18 task 1: {total}")
+
+add_re = re.compile("([0-9]+) \+ ([0-9]+)")
+val_re = re.compile("([0-9]+)")
+
+def parse_line_2(line):
+    the_line = line.strip()
+    # We first go through and evaluate subordinate expressions
+    i = 0
+    num_replaced = 0
+    while i < len(the_line):
+        if the_line[i] == '(':
+            j = i+1
+            depth = 0
+            while ((depth > 0) or (the_line[j] != ')')) and (j < len(the_line)):
+                if the_line[j] == '(':
+                    depth += 1
+                elif the_line[j] == ')':
+                    depth -= 1
+                j += 1
+            result = parse_line_2(the_line[i+1:j])
+            the_line = the_line[:i]+result+the_line[j+1:]
+            num_replaced += 1
+
+        else:
+            i += 1
+
+    while True:
+        matches = add_re.findall(the_line)
+        if len(matches) == 0:
+            break
+        for match in matches:
+            val1 = int(match[0])
+            val2 = int(match[1])
+            res = str(val1+val2)
+            the_line = the_line.replace(f"{val1} + {val2}", res)
+
+    nums = val_re.findall(the_line)
+    result = 1
+    for num in nums:
+        result *= int(num)
+    return str(result)
+
+total = 0
+for line in lines:
+    result = parse_line_2(line)
+    total += int(result)
+
+print(f"Day 18 task 2: {total}")
