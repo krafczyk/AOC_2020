@@ -89,16 +89,37 @@ while i < len(lines):
     tiles.append(Tile(int(matches[0]), tile_map))
     i += 12
 
+# Test
+tile_matches = {}
+for i in range(len(tiles)):
+    tile_i = tiles[i]
+    matches_i = tile_matches.get(tile_i.number, [])
+    for D_i in ['N', 'S', 'E', 'W']:
+        side_i = tile_i.get_border(D_i)
+        for j in range(i+1,len(tiles)):
+            tile_j = tiles[j]
+            matches_j = tile_matches.get(tile_j.number, [])
+            for D_j in ['N', 'S', 'E', 'W']:
+                side_j = tile_j.get_border(D_j)
+                if np.all(side_i == side_j) or np.all(side_i[::-1] == side_j):
+                    matches_i.append(tile_j.number)
+                    matches_j.append(tile_i.number)
+            tile_matches[tile_j.number] = matches_j
+    tile_matches[tile_i.number] = matches_i
 
-for tile in tiles:
-    print()
-    print(tile)
-    print("North border:")
-    print(Tile.render_bool_array(tile.get_border('N')))
-    print("South border:")
-    print(Tile.render_bool_array(tile.get_border('S')))
-    print("East border:")
-    print(Tile.render_bool_array(tile.get_border('E')))
-    print("West border:")
-    print(Tile.render_bool_array(tile.get_border('W')))
+min_matches = len(tile_matches[list(tile_matches.keys())[0]])
+max_matches = len(tile_matches[list(tile_matches.keys())[0]])
 
+match_nums = {}
+for num in tile_matches:
+    matches = tile_matches[num]
+    num_matches = len(matches)
+    match_nums[num_matches] = match_nums.get(num_matches, 0)+1
+
+value = 1
+for num in tile_matches:
+    matches = tile_matches[num]
+    if len(matches) == 2:
+        value *= num
+
+print(f"Day 20 task 1: {value}")
