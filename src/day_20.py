@@ -109,7 +109,6 @@ while i < len(lines):
                 tile_map[j,k] = True
     new_tile = Tile(int(matches[0]), tile_map)
     tiles[int(matches[0])] = new_tile
-    print(new_tile)
     i += 12
 
 # Test
@@ -224,11 +223,11 @@ for y in range(num_side):
 
         # Rotate piece until the edge is in the 'S' position, as the new piece will sit to the North of the old.
         if edge_match == 'W':
-            new_piece.rotate_right()
+            new_piece.rotate_left()
         elif edge_match == 'S':
             pass
         elif edge_match == 'E':
-            new_piece.rotate_left()
+            new_piece.rotate_right()
         else:
             new_piece.flipud()
 
@@ -238,24 +237,21 @@ for y in range(num_side):
 
         # sanity check
         if not np.all(north_border == new_piece.get_border('S')):
+            print("prev_piece:")
+            print(prev_piece)
+            print("new_piece:")
+            print(new_piece)
             raise RuntimeError("Failed Sanity check!")
 
         # We have the right piece!
         line.append(new_piece)
 
-    print("Starting new row with piece:")
-    print(line[0])
-
     # Build rest of line
     for x in range(1,num_side):
         # We assume last piece is already in place, and oriented properly.
         prev_piece = tiles[line[x-1].number]
-        #print("current prev piece:")
-        #print(prev_piece)
         # We get the East border, as this is where we're building from.
         east_border = prev_piece.get_border('E')
-        #print("matching this east border")
-        #print(Tile.render_bool_array(east_border))
         # Find out which piece matches this border.
         prev_matches = tile_matches[prev_piece.number]
         east_match_num = None
@@ -267,8 +263,6 @@ for y in range(num_side):
         if east_match_num is None:
             raise RuntimeError("Couldn't find a piece which matches the east edge!")
         new_piece = tiles[east_match_num]
-        #print("Found the next piece:")
-        #print(new_piece)
         # Find out which edge we match to of the prospective piece.
         edge_match = None
         for edge_J in Tile.edge_list:
@@ -278,8 +272,6 @@ for y in range(num_side):
                 break
         if edge_match is None:
             raise RuntimeError("Couldn't find the matching edge!")
-
-        #print(f"Matching edge: {edge_match}")
 
         # Rotate piece until the edge is in the 'W' position, as the new piece will sit to the East of the old.
         if edge_match == 'W':
@@ -291,41 +283,19 @@ for y in range(num_side):
         else:
             new_piece.rotate_left()
 
-        #print(f"After rotation:")
-        #print(new_piece)
-
         # Check orientation one more time.
-        #print("----final orientation comparison----")
-        #print("prev_piece")
-        #print(prev_piece)
-        #print("new_piece")
-        #print(new_piece)
-        #print("east_border:")
-        #print(Tile.render_bool_array(east_border))
-        #print("new_piece west border:")
-        #print(Tile.render_bool_array(new_piece.get_border('W')))
         if not np.all(east_border == new_piece.get_border('W')):
-            #print("Flipping piece u/d")
             new_piece.flipud()
 
-        #print("After adjustment")
-        #print("prev_piece:")
-        #print(prev_piece)
-        #print("new_piece:")
-        #print(new_piece)
         # sanity check
         if not np.all(east_border == new_piece.get_border('W')):
             raise RuntimeError("Failed Sanity check!")
 
         # We have the right piece!
         line.append(new_piece)
-        print("Adding new piece")
-        print(new_piece)
+
     # We've now completed a row.
     puzzle_solution.append(line)
-    #sys.exit(0)
-
-#puzzle_solution = list(reversed(puzzle_solution))
 
 # Diagnostic to see that we have the actual solution.
 for l_j in range(num_side):
@@ -342,7 +312,6 @@ for l_j in range(num_side):
             line += " "
         print(line)
     print()
-
 
 # 4 Merge pieces into one array.
 
