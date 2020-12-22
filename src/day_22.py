@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+import copy
 
 # Define Argument Parser
 parser = argparse.ArgumentParser('Solves Advent of Code Day 22')
@@ -20,21 +21,21 @@ if not os.path.exists(input_filepath):
 with open(input_filepath, 'r') as f:
     lines = f.readlines()
 
-player1_deck = []
-player2_deck = []
+init_player1_deck = []
+init_player2_deck = []
 
 i = 1
 while lines[i].strip() != "":
-    player1_deck.append(int(lines[i].strip()))
+    init_player1_deck.append(int(lines[i].strip()))
     i += 1
 
 i += 2
 while i < len(lines):
-    player2_deck.append(int(lines[i].strip()))
+    init_player2_deck.append(int(lines[i].strip()))
     i += 1
 
-print(player1_deck)
-print(player2_deck)
+player1_deck = copy.deepcopy(init_player1_deck)
+player2_deck = copy.deepcopy(init_player2_deck)
 
 num_turns = 0
 while (len(player1_deck) > 0) and (len(player2_deck) > 0):
@@ -56,8 +57,10 @@ if len(player1_deck) > 0:
 else:
     winner_deck = player2_deck
 
-total = 0
-for i in range(len(winner_deck)):
-    total += winner_deck[len(winner_deck)-1-i]*(i+1)
+def compute_score(deck):
+    total = 0
+    for i in range(len(deck)):
+        total += deck[len(deck)-1-i]*(i+1)
+    return total
 
-print(f"Day 22 task 1: {total}")
+print(f"Day 22 task 1: {compute_score(winner_deck)}")
