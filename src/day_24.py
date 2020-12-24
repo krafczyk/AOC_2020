@@ -34,6 +34,7 @@ D = {
 }
 
 tile_set = set()
+hash_map = {}
 
 for line in lines:
     directions = line.strip()
@@ -71,5 +72,50 @@ for line in lines:
         tile_set.remove(p_hash)
     else:
         tile_set.add(p_hash)
+    if p_hash not in hash_map:
+        hash_map[p_hash] = p
 
 print(f"Day 24 task 1: {len(tile_set)}")
+
+num_days = 0
+max_days = 100
+while num_days < max_days:
+    # Build set of locations to consider this 'day'
+    consider_locations = set()
+    for p_hash in tile_set:
+        # Get tile neighbors
+        p = hash_map[p_hash]
+        Ds = np.stack(list(D.values()),axis=0)
+        Ns = Ds+np.stack([p]*len(Ds),axis=0)
+        for p in Ns:
+            pos_hash = hash_numpy(p)
+            if pos_hash not in consider_locations:
+                consider_locations.add(pos_hash)
+                hash_map[pos_hash] = p
+
+    # Add black tiles to new map
+    new_tile_set = set()
+    for p_hash in consider_locations:
+        # Get tile neighbors
+        p = hash_map[p_hash]
+        Ds = np.stack(list(D.values()),axis=0)
+        Ns = Ds+np.stack([p]*len(Ds),axis=0)
+        neighbors = set(map(lambda n: hash_numpy(n), list(Ns)))
+        # Count number of neighbors that are black
+        n_black = len(tile_set.intersection(neighbors))
+        if p_hash in tile_set:
+            # The tile is black.
+            if n_black == 1 or n_black == 2:
+                new_tile_set.add(p_hash)
+        else:
+            # The tile is white
+            if n_black == 2:
+                new_tile_set.add(p_hash)
+
+    # Swap maps
+    tile_set = new_tile_set
+    num_days += 1
+    print(f"Day {num_days}: {len(tile_set)}")
+
+
+print(f"Day 24 task 2: {len(tile_set)}")
