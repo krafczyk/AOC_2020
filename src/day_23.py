@@ -4,6 +4,15 @@ import sys
 import numpy as np
 import time
 
+class Cup(object):
+    def __init__(self, number):
+        self.left = None
+        self.right = None
+        self.number = number
+
+    def __str__(self):
+        return f"{self.number}"
+
 # Define Argument Parser
 parser = argparse.ArgumentParser('Solves Advent of Code Day 23')
 parser.add_argument('--input', help="Path to the input file", type=str, required=True)
@@ -22,156 +31,95 @@ if not os.path.exists(input_filepath):
 with open(input_filepath, 'r') as f:
     lines = f.readlines()
 
-initial = np.array([],np.int)
+initial = []
 for char in lines[0].strip():
-    initial = np.append(initial, [int(char)])
+    num = int(char)
+    initial.append(num)
 
-def hash_numpy(array):
-    return hash(array.data.tobytes())
+def decrement(num, max_num):
+    return ((num-2)%max_num)+1
 
-def hash_list(the_list):
-    return hash(tuple(the_list))
+def build_cup_map(initial):
+    # Build cup map
+    cup_map = {}
+    for num in initial:
+        cup_map[num] = Cup(num)
 
-def get_next_sequence_numpy(sequence, max_val):
-    pick_out = sequence[1:4]
-    # Piece together
-    sequence = np.concatenate([sequence[0:1],sequence[4:]], axis=0)
-    # Find destination
-    destination = ((sequence[0]-2)%max_val)+1
-    while len(np.where(pick_out == destination)[0]) != 0:
-        destination = ((destination-2)%max_val)+1
+    # hook up cups
+    cup0 = cup_map[initial[0]]
+    cup0.right = cup_map[initial[1]]
+    cup0.left = cup_map[initial[-1]]
 
-    # Get location of destination
-    dest_idx = np.where(sequence == destination)[0][0]
-    # Add picked out sequence back.
-    sequence = np.concatenate([sequence[:dest_idx+1],pick_out,sequence[dest_idx+1:]], axis=0)
-    # Rotate!
-    return np.concatenate([sequence[1:],sequence[0:1]], axis=0)
+    cupl = cup_map[initial[-1]]
+    cupl.right = cup_map[initial[0]]
+    cupl.left = cup_map[initial[-2]]
 
-def get_next_sequence_list(sequence, max_val):
-    pick_out = sequence[1:4]
-    # Piece together
-    sequence = sequence[0:1]+sequence[4:]
-    # Find destination
-    destination = ((sequence[0]-2)%max_val)+1
-    while True:
-        try:
-            pick_out.index(destination)
-            destination = ((destination-2)%max_val)+1
-        except:
-            break
+    for i in range(1,len(initial)-1):
+        cupi = cup_map[initial[i]]
+        cupi.left = cup_map[initial[i-1]]
+        cupi.right = cup_map[initial[i+1]]
 
-    # Get location of destination
-    dest_idx = sequence.index(destination)
-    # Add picked out sequence back.
-    sequence = sequence[:dest_idx+1]+pick_out+sequence[dest_idx+1:]
-    # Rotate!
-    return sequence[1:]+sequence[0:1]
+    return cup_map
 
-def get_history(numbers):
-    initial_hash = hash_numpy(numbers)
-    history = [initial_hash]
+def run_step(cup_map, current_cup, max_element):
+    preserve_grp_l = current_cup.right
+    preserve_grp_r = cup_map[preserve_grp_l.number].right.right
+    preserved_nums = [
+        preserve_grp_l.number,
+        preserve_grp_l.right.number,
+        preserve_grp_l.right.right.number
+    ]
 
-    max_number = numbers.max()
-    periodic = False
-    while not periodic:
-        numbers = get_next_sequence_numpy(numbers, max_number)
-        number_hash = hash_numpy(numbers)
-        periodic = False
-        if number_hash in history:
-            # Now periodic!
-            periodic = True
-        history.append(number_hash)
-    return history
+    destination = decrement(current_cup.number, max_element)
+    while destination in preserved_nums:
+        destination = decrement(destination, max_element)
 
-def get_history_timing_numpy(numbers, num_steps):
-    initial_hash = hash_list(numbers)
-    history = [initial_hash]
+    # Remove preserved section
+    current_cup.right = preserve_grp_r.right
+    preserve_grp_r.right.left = current_cup
 
-    max_number = numbers.max()
-    periodic = False
+    # Add preserved section back
+    destination_node = cup_map[destination]
+    destination_node_neighbor = destination_node.right 
+    destination_node.right = preserve_grp_l
+    preserve_grp_l.left = destination_node
+    destination_node_neighbor.left = preserve_grp_r
+    preserve_grp_r.right = destination_node_neighbor
+
+    return current_cup.right
+
+def run_steps(cup_map, current_cup, num_steps, max_element):
     step_i = 0
-    start = time.time()
-    while not periodic and step_i < num_steps:
-        numbers = get_next_sequence_numpy(numbers, max_number)
-        number_hash = hash_numpy(numbers)
-        periodic = False
-        if number_hash in history:
-            # Now periodic!
-            periodic = True
-        history.append(number_hash)
+    while step_i < num_steps:
+        current_cup = run_step(cup_map, current_cup, max_element)
         step_i += 1
-    end = time.time()
-    print(f"{(end-start)/num_steps*1000} ms per loop over {num_steps} loops numpy algorithm")
+    return current_cup
 
-def get_history_timing_list(numbers, num_steps):
-    initial_hash = hash_list(numbers)
-    history = [initial_hash]
+cup_map_1 = build_cup_map(initial)
+current_cup = cup_map_1[initial[0]]
 
-    max_number = 0
-    for n in numbers:
-        max_number = max(n,max_number)
-    periodic = False
-    step_i = 0
-    start = time.time()
-    while not periodic and step_i < num_steps:
-        numbers = get_next_sequence_list(numbers, max_number)
-        number_hash = hash_list(numbers)
-        periodic = False
-        if number_hash in history:
-            # Now periodic!
-            periodic = True
-        history.append(number_hash)
-        step_i += 1
-    end = time.time()
-    print(f"{(end-start)/num_steps*1000} ms per loop over {num_steps} loops list algorithm")
+run_steps(cup_map_1, current_cup, 100, 9)
 
-def get_value_in_sequence(initial, history, I):
-    last_hash = history[-1]
-    first_hash_idx = history.index(last_hash)
-    #print(f"first_hash_idx: {first_hash_idx}")
-    last_hash_idx = len(history)-1
-    #print(f"last_hash_idx: {last_hash_idx}")
-    period = last_hash_idx-first_hash_idx
-    #print(f"period: {period}")
-    runup = first_hash_idx
-    if I < runup:
-        target_hash = history[I]
-    else:
-        i = I-runup
-        i = i%period
-        target_hash = history[runup+i]
+result = ""
+node = cup_map_1[1]
+while node.right != cup_map_1[1]:
+    result = result+f"{node.right.number}"
+    node = node.right
 
-    numbers = np.copy(initial)
-    max_number = initial.max()
-    while hash_numpy(numbers) != target_hash:
-        numbers = get_next_sequence_numpy(numbers, max_number)
+print(f"Day 23 task 1: {result}")
 
-    return numbers
+# Extend cups
+for i in range(10,1000000+1):
+   initial.append(i)
 
-history_1 = get_history(np.copy(initial))
-sequence = get_value_in_sequence(np.copy(initial), history_1, 100)
+cup_map_2 = build_cup_map(initial)
+current_cup = cup_map_2[initial[0]]
 
-#print(f"Sequence: {sequence}")
+run_steps(cup_map_2, current_cup, 10000000, 1000000)
 
-idx_1 = np.where(sequence == 1)[0][0]
-sequence = np.concatenate([sequence[idx_1+1:],sequence[:idx_1]], axis=0)
+val_1 = cup_map_2[1].right.number
+val_2 = cup_map_2[1].right.right.number
 
-print(f"Day 23 task 1: {sequence}")
-
-numbers = np.concatenate([np.copy(initial), np.linspace(10, 1000000, num=(1000000-10+1), dtype=np.int)], axis=0)
-
-get_history_timing_numpy(np.copy(numbers), 1000)
-get_history_timing_list(list(numbers), 1000)
-
-
-#history_2 = get_history(np.copy(numbers))
-#sequence = get_value_in_sequence(np.copy(numbers), history_2, 10000000)
-#
-#idx_1 = np.where(sequence == 1)[0][0]
-#sequence = np.concatenate([sequence[idx_1:],sequence[:idx_1]], axis=0)
-#
-#val_1 = sequence[1]
-#val_2 = sequence[2]
-#
-#print(f"Day 23 task 2: {val_1*val_2}")
+print(f"val_1: {val_1}")
+print(f"val_2: {val_2}")
+print(f"Day 23 task 2: {val_1*val_2}")
